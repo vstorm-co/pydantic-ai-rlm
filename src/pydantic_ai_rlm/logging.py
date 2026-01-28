@@ -47,7 +47,7 @@ class RLMLogger:
             )
             self.console.print(panel)
         else:
-            print(f"\n{'='*50}")
+            print(f"\n{'=' * 50}")
             print("CODE EXECUTION")
             print("=" * 50)
             print(code)
@@ -141,7 +141,7 @@ class RLMLogger:
     def _log_result_plain(self, result: REPLResult) -> None:
         """Log result using plain text."""
         status = "SUCCESS" if result.success else "ERROR"
-        print(f"\n{'='*50}")
+        print(f"\n{'=' * 50}")
         print(f"RESULT: {status} (executed in {result.execution_time:.3f}s)")
         print("=" * 50)
 
@@ -159,11 +159,7 @@ class RLMLogger:
                 stderr = stderr[:1000] + "\n... (truncated)"
             print(stderr)
 
-        user_vars = {
-            k: v
-            for k, v in result.locals.items()
-            if not k.startswith("_") and k not in ("context", "json", "re", "os")
-        }
+        user_vars = {k: v for k, v in result.locals.items() if not k.startswith("_") and k not in ("context", "json", "re", "os")}
         if user_vars:
             print("\nVariables:")
             for name, value in list(user_vars.items())[:10]:
@@ -198,7 +194,7 @@ class RLMLogger:
             )
             self.console.print(panel)
         else:
-            print(f"\n{'='*50}")
+            print(f"\n{'=' * 50}")
             print("LLM QUERY")
             print("=" * 50)
             display_prompt = prompt
@@ -226,7 +222,7 @@ class RLMLogger:
             )
             self.console.print(panel)
         else:
-            print(f"\n{'='*50}")
+            print(f"\n{'=' * 50}")
             print("LLM RESPONSE")
             print("=" * 50)
             display_response = response

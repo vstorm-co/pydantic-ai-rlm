@@ -10,12 +10,10 @@ import random
 
 from dotenv import load_dotenv
 
-from pydantic_ai_rlm import run_rlm_analysis_sync, configure_logging
+from pydantic_ai_rlm import configure_logging, run_rlm_analysis_sync
 
 
-def generate_massive_context(
-    num_lines: int = 1_000_000, answer: str = "1298418"
-) -> str:
+def generate_massive_context(num_lines: int = 1_000_000, answer: str = "1298418") -> str:
     """Generate a massive text context with a hidden magic number."""
     print(f"Generating massive context with {num_lines:,} lines...")
 

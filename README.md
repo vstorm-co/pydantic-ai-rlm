@@ -6,6 +6,7 @@
 
 <p align="center">
   <a href="https://github.com/vstorm-co/pydantic-ai-rlm">GitHub</a> •
+  <a href="https://pypi.org/project/pydantic-ai-rlm/">PyPI</a> •
   <a href="https://github.com/vstorm-co/pydantic-ai-rlm#examples">Examples</a>
 </p>
 
@@ -13,6 +14,7 @@
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
   <a href="https://github.com/pydantic/pydantic-ai"><img src="https://img.shields.io/badge/Powered%20by-Pydantic%20AI-E92063?logo=pydantic&logoColor=white" alt="Pydantic AI"></a>
+  <a href="https://pypi.org/project/pydantic-ai-rlm/"><img src="https://img.shields.io/pypi/v/pydantic-ai-rlm.svg" alt="PyPI version"></a>
 </p>
 
 <p align="center">
@@ -250,16 +252,19 @@ configure_logging(enabled=False)
 ```
 
 Install with rich logging support for syntax highlighting and styled output:
+
 ```bash
 pip install pydantic-ai-rlm[logging]
 ```
 
 Or install rich separately:
+
 ```bash
 pip install rich
 ```
 
 When enabled, you'll see:
+
 - Syntax-highlighted code being executed (with rich)
 - Execution results with status indicators (SUCCESS/ERROR)
 - Execution time for each code block

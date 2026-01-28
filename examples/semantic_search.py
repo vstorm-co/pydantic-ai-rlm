@@ -10,7 +10,7 @@ import random
 
 from dotenv import load_dotenv
 
-from pydantic_ai_rlm import run_rlm_analysis_sync, configure_logging
+from pydantic_ai_rlm import configure_logging, run_rlm_analysis_sync
 
 
 def generate_semantic_context(num_documents: int = 500) -> tuple[str, str]:
@@ -67,10 +67,7 @@ def generate_semantic_context(num_documents: int = 500) -> tuple[str, str]:
         "Ware",
         "Hub",
     ]
-    companies = [
-        f"{random.choice(prefixes)}{random.choice(suffixes)}"
-        for _ in range(num_documents)
-    ]
+    companies = [f"{random.choice(prefixes)}{random.choice(suffixes)}" for _ in range(num_documents)]
 
     # Pick a random company to be the bankrupt one
     bankrupt_idx = random.randint(100, num_documents - 100)
@@ -112,9 +109,7 @@ def generate_semantic_context(num_documents: int = 500) -> tuple[str, str]:
     random.shuffle(documents)
 
     context = "\n\n".join(documents)
-    print(
-        f"Bankrupt company: {bankrupt_company} (was at original index {bankrupt_idx})"
-    )
+    print(f"Bankrupt company: {bankrupt_company} (was at original index {bankrupt_idx})")
 
     return context, bankrupt_company
 
