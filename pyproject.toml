@@ -1,6 +1,6 @@
 [project]
 name = "pydantic-ai-rlm"
-version = "0.1.0"
+version = "0.1.1"
 description = "Recursive Language Model (RLM) toolset for Pydantic AI - handle extremely large contexts"
 readme = "README.md"
 license = "MIT"
