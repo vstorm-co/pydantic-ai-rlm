@@ -142,6 +142,7 @@ def main():
         query=query,
         model="openai:gpt-5",
         sub_model="openai:gpt-5-mini",
+        grounded=True,
     )
 
     print(f"\nResult: {result}")

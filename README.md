@@ -24,6 +24,8 @@
   &nbsp;•&nbsp;
   <b>Sub-Model Delegation</b>
   &nbsp;•&nbsp;
+  <b>Grounded Citations</b>
+  &nbsp;•&nbsp;
   <b>Fully Type-Safe</b>
 </p>
 
@@ -175,6 +177,30 @@ result = await agent.run(
 )
 ```
 
+### Grounded Responses with Citations
+
+Get answers with traceable citations back to the source:
+
+```python
+from pydantic_ai_rlm import run_rlm_analysis
+
+# Enable grounding for citation tracking
+result = await run_rlm_analysis(
+    context=financial_report,
+    query="What were the key revenue changes?",
+    model="openai:gpt-5",
+    grounded=True,  # Returns GroundedResponse instead of str
+)
+
+# Response contains citation markers
+print(result.info)
+# "Revenue increased [FRAG_1] primarily due to [FRAG_2]"
+
+# Grounding maps markers to exact quotes from the source
+print(result.grounding)
+# {"FRAG_1": "by 45% year-over-year", "FRAG_2": "expansion into Asian markets"}
+```
+
 ---
 
 ## API Reference
@@ -189,6 +215,7 @@ agent = create_rlm_agent(
     sub_model="openai:gpt-5-mini",  # Model for llm_query() (optional)
     code_timeout=60.0,               # Timeout for code execution
     custom_instructions="...",       # Additional instructions
+    grounded=True,                   # Return GroundedResponse with citations
 )
 ```
 
@@ -213,6 +240,11 @@ answer = await run_rlm_analysis(context, query, model="openai:gpt-5")
 
 # Sync
 answer = run_rlm_analysis_sync(context, query, model="openai:gpt-5")
+
+# With grounding (returns GroundedResponse)
+result = await run_rlm_analysis(context, query, grounded=True)
+print(result.info)       # Text with [FRAG_N] markers
+print(result.grounding)  # {"FRAG_1": "exact quote", ...}
 ```
 
 ### `RLMDependencies`

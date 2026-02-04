@@ -50,6 +50,61 @@ print(f"Final answer: {results}")
 4. **Be thorough** - For needle-in-haystack, search the entire context
 """
 
+GROUNDING_INSTRUCTIONS = """
+
+## Grounding Requirements
+
+Your response MUST include grounded citations. This means:
+
+1. **Citation Format**: Use markers like `[1]`, `[2]`, etc. in your response text
+2. **Exact Quotes**: Each marker must map to an EXACT quote from the source context (verbatim, no paraphrasing)
+3. **Quote Length**: Each quote should be 10-200 characters - enough to be meaningful but not too long
+4. **Consecutive Numbering**: Number citations consecutively starting from 1
+
+### Output Format
+
+Your final answer must be valid JSON with this structure:
+```json
+{
+   "info": "The document states that X Y Z [1]. Additionally, A B C [2]",
+   "grounding": {
+      "1": "exact quote from source",
+      "2": "another exact quote from source"
+   }
+}
+```
+
+### Example
+
+If the context contains: "The company's revenue increased by 45% in Q3 2024, driven by expansion into new markets in Asia."
+
+Your response should look like:
+```json
+{
+   "info": "Revenue showed strong growth [1] with geographic expansion being a key driver [2].",
+   "grounding": {
+      "1": "revenue increased by 45% in Q3 2024",
+      "2": "driven by expansion into new markets in Asia"
+   }
+}
+```
+
+### Finding Quotes in Code
+
+Use this approach to find and verify exact quotes:
+```python
+# Find a specific phrase in context
+search_term = "revenue"
+idx = context.lower().find(search_term)
+if idx != -1:
+    # Extract surrounding context for the quote
+    quote = context[max(0, idx):idx+100]
+    print(f"Found: {quote}")
+```
+
+**Important**: Every citation marker in your `info` field MUST have a corresponding entry in `grounding`. Only output the JSON object, no additional text.
+"""
+
 LLM_QUERY_INSTRUCTIONS = """
 
 ## Sub-LLM Queries
@@ -93,14 +148,15 @@ print(result)
 
 def build_rlm_instructions(
     include_llm_query: bool = False,
+    include_grounding: bool = False,
     custom_suffix: str | None = None,
 ) -> str:
     """
     Build RLM instructions with optional customization.
 
     Args:
-        include_examples: Whether to include detailed examples
         include_llm_query: Whether to include llm_query() documentation
+        include_grounding: Whether to include grounding/citation instructions
         custom_suffix: Additional instructions to append
 
     Returns:
@@ -109,8 +165,10 @@ def build_rlm_instructions(
     base = RLM_INSTRUCTIONS
 
     if include_llm_query:
-        llm_docs = LLM_QUERY_INSTRUCTIONS
-        base = f"{base}{llm_docs}"
+        base = f"{base}{LLM_QUERY_INSTRUCTIONS}"
+
+    if include_grounding:
+        base = f"{base}{GROUNDING_INSTRUCTIONS}"
 
     if custom_suffix:
         base = f"{base}\n\n## Additional Instructions\n\n{custom_suffix}"

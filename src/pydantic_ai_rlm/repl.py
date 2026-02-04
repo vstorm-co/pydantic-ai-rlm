@@ -7,6 +7,7 @@ import os
 import shutil
 import sys
 import tempfile
+import textwrap
 import threading
 import time
 from contextlib import contextmanager
@@ -328,6 +329,9 @@ with open(r'{context_path}', 'r', encoding='utf-8') as f:
         Returns:
             REPLResult with stdout, stderr, locals, and timing
         """
+        # Normalize code: remove common leading whitespace and strip
+        code = textwrap.dedent(code).strip()
+
         start_time = time.time()
         success = True
         stdout_content = ""

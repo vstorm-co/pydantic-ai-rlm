@@ -1,21 +1,45 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal, overload
 
 from pydantic_ai import Agent, UsageLimits
 
 from .dependencies import ContextType, RLMConfig, RLMDependencies
+from .models import GroundedResponse
 from .prompts import build_rlm_instructions
 from .toolset import create_rlm_toolset
+
+
+@overload
+def create_rlm_agent(
+    model: str = "openai:gpt-5",
+    sub_model: str | None = None,
+    code_timeout: float = 60.0,
+    custom_instructions: str | None = None,
+    *,
+    grounded: Literal[False] = False,
+) -> Agent[RLMDependencies, str]: ...
+
+
+@overload
+def create_rlm_agent(
+    model: str = "openai:gpt-5",
+    sub_model: str | None = None,
+    code_timeout: float = 60.0,
+    custom_instructions: str | None = None,
+    *,
+    grounded: Literal[True],
+) -> Agent[RLMDependencies, GroundedResponse]: ...
 
 
 def create_rlm_agent(
     model: str = "openai:gpt-5",
     sub_model: str | None = None,
     code_timeout: float = 60.0,
-    include_example_instructions: bool = True,
     custom_instructions: str | None = None,
-) -> Agent[RLMDependencies, str]:
+    *,
+    grounded: bool = False,
+) -> Agent[RLMDependencies, str] | Agent[RLMDependencies, GroundedResponse]:
     """
     Create a Pydantic AI agent with REPL code execution capabilities.
 
@@ -26,11 +50,12 @@ def create_rlm_agent(
             available in the REPL, allowing the agent to delegate sub-queries.
             Example: "openai:gpt-5-mini" or "anthropic:claude-3-haiku-20240307"
         code_timeout: Timeout for code execution in seconds
-        include_example_instructions: Include detailed examples in instructions
         custom_instructions: Additional instructions to append
+        grounded: If True, return a GroundedResponse with citation markers
 
     Returns:
-        Configured Agent instance
+        Configured Agent instance. Returns Agent[RLMDependencies, GroundedResponse]
+        when grounded=True, otherwise Agent[RLMDependencies, str].
 
     Example:
         ```python
@@ -48,24 +73,61 @@ def create_rlm_agent(
         )
         result = await agent.run("What are the main themes?", deps=deps)
         print(result.output)
+
+        # Create grounded agent
+        grounded_agent = create_rlm_agent(model="openai:gpt-5", grounded=True)
+        result = await grounded_agent.run("What happened?", deps=deps)
+        print(result.output.info)  # Response with [FRAG_N] markers
+        print(result.output.grounding)  # {"FRAG_1": "exact quote", ...}
         ```
     """
     toolset = create_rlm_toolset(code_timeout=code_timeout, sub_model=sub_model)
 
     instructions = build_rlm_instructions(
         include_llm_query=sub_model is not None,
+        include_grounding=grounded,
         custom_suffix=custom_instructions,
     )
 
-    agent: Agent[RLMDependencies, str] = Agent(
+    output_type: type[str] | type[GroundedResponse] = GroundedResponse if grounded else str
+
+    agent: Agent[RLMDependencies, Any] = Agent(
         model,
         deps_type=RLMDependencies,
-        output_type=str,
+        output_type=output_type,
         toolsets=[toolset],
         instructions=instructions,
     )
 
     return agent
+
+
+@overload
+async def run_rlm_analysis(
+    context: ContextType,
+    query: str,
+    model: str = "openai:gpt-5",
+    sub_model: str | None = None,
+    config: RLMConfig | None = None,
+    max_tool_calls: int = 50,
+    *,
+    grounded: Literal[False] = False,
+    **agent_kwargs: Any,
+) -> str: ...
+
+
+@overload
+async def run_rlm_analysis(
+    context: ContextType,
+    query: str,
+    model: str = "openai:gpt-5",
+    sub_model: str | None = None,
+    config: RLMConfig | None = None,
+    max_tool_calls: int = 50,
+    *,
+    grounded: Literal[True],
+    **agent_kwargs: Any,
+) -> GroundedResponse: ...
 
 
 async def run_rlm_analysis(
@@ -75,8 +137,10 @@ async def run_rlm_analysis(
     sub_model: str | None = None,
     config: RLMConfig | None = None,
     max_tool_calls: int = 50,
+    *,
+    grounded: bool = False,
     **agent_kwargs: Any,
-) -> str:
+) -> str | GroundedResponse:
     """
     Convenience function to run RLM analysis on a context.
 
@@ -89,25 +153,36 @@ async def run_rlm_analysis(
             available in the REPL, allowing the agent to delegate sub-queries.
         config: Optional RLMConfig for customization
         max_tool_calls: Maximum tool calls allowed
+        grounded: If True, return a GroundedResponse with citation markers
         **agent_kwargs: Additional arguments passed to create_rlm_agent()
 
     Returns:
-        The agent's final answer as a string
+        The agent's final answer. Returns GroundedResponse when grounded=True,
+        otherwise returns str.
 
     Example:
         ```python
         from pydantic_ai_rlm import run_rlm_analysis
 
-        # With sub-model for llm_query
+        # Standard string response
         answer = await run_rlm_analysis(
             context=huge_document,
             query="Find the magic number hidden in the text",
             sub_model="openai:gpt-5-mini",
         )
         print(answer)
+
+        # Grounded response with citations
+        result = await run_rlm_analysis(
+            context=document,
+            query="What was the revenue change?",
+            grounded=True,
+        )
+        print(result.info)  # "Revenue grew [FRAG_1]..."
+        print(result.grounding)  # {"FRAG_1": "increased by 45%", ...}
         ```
     """
-    agent = create_rlm_agent(model=model, sub_model=sub_model, **agent_kwargs)
+    agent = create_rlm_agent(model=model, sub_model=sub_model, grounded=grounded, **agent_kwargs)
 
     effective_config = config or RLMConfig()
     if sub_model and not effective_config.sub_model:
@@ -127,6 +202,7 @@ async def run_rlm_analysis(
     return result.output
 
 
+@overload
 def run_rlm_analysis_sync(
     context: ContextType,
     query: str,
@@ -134,14 +210,63 @@ def run_rlm_analysis_sync(
     sub_model: str | None = None,
     config: RLMConfig | None = None,
     max_tool_calls: int = 50,
+    *,
+    grounded: Literal[False] = False,
     **agent_kwargs: Any,
-) -> str:
+) -> str: ...
+
+
+@overload
+def run_rlm_analysis_sync(
+    context: ContextType,
+    query: str,
+    model: str = "openai:gpt-5",
+    sub_model: str | None = None,
+    config: RLMConfig | None = None,
+    max_tool_calls: int = 50,
+    *,
+    grounded: Literal[True],
+    **agent_kwargs: Any,
+) -> GroundedResponse: ...
+
+
+def run_rlm_analysis_sync(
+    context: ContextType,
+    query: str,
+    model: str = "openai:gpt-5",
+    sub_model: str | None = None,
+    config: RLMConfig | None = None,
+    max_tool_calls: int = 50,
+    *,
+    grounded: bool = False,
+    **agent_kwargs: Any,
+) -> str | GroundedResponse:
     """
     Synchronous version of run_rlm_analysis.
 
     See run_rlm_analysis() for full documentation.
+
+    Example:
+        ```python
+        from pydantic_ai_rlm import run_rlm_analysis_sync
+
+        # Standard string response
+        answer = run_rlm_analysis_sync(
+            context=document,
+            query="What happened?",
+        )
+
+        # Grounded response with citations
+        result = run_rlm_analysis_sync(
+            context=document,
+            query="What was the revenue change?",
+            grounded=True,
+        )
+        print(result.info)  # "Revenue grew [FRAG_1]..."
+        print(result.grounding)  # {"FRAG_1": "increased by 45%", ...}
+        ```
     """
-    agent = create_rlm_agent(model=model, sub_model=sub_model, **agent_kwargs)
+    agent = create_rlm_agent(model=model, sub_model=sub_model, grounded=grounded, **agent_kwargs)
 
     effective_config = config or RLMConfig()
     if sub_model and not effective_config.sub_model:
