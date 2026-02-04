@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import re
-
 from pydantic import BaseModel, Field
 
 
@@ -13,11 +11,7 @@ class GroundedResponse(BaseModel):
     Example:
         ```python
         response = GroundedResponse(
-            info="Revenue grew [1] driven by expansion [2]",
-            grounding={
-                "1": "increased by 45%",
-                "2": "new markets in Asia"
-            }
+            info="Revenue grew [1] driven by expansion [2]", grounding={"1": "increased by 45%", "2": "new markets in Asia"}
         )
         ```
     """
