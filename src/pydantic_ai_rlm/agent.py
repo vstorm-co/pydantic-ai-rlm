@@ -77,8 +77,8 @@ def create_rlm_agent(
         # Create grounded agent
         grounded_agent = create_rlm_agent(model="openai:gpt-5", grounded=True)
         result = await grounded_agent.run("What happened?", deps=deps)
-        print(result.output.info)  # Response with [FRAG_N] markers
-        print(result.output.grounding)  # {"FRAG_1": "exact quote", ...}
+        print(result.output.info)  # Response with [N] markers
+        print(result.output.grounding)  # {"1": "exact quote", ...}
         ```
     """
     toolset = create_rlm_toolset(code_timeout=code_timeout, sub_model=sub_model)
@@ -178,8 +178,8 @@ async def run_rlm_analysis(
             query="What was the revenue change?",
             grounded=True,
         )
-        print(result.info)  # "Revenue grew [FRAG_1]..."
-        print(result.grounding)  # {"FRAG_1": "increased by 45%", ...}
+        print(result.info)  # "Revenue grew [1]..."
+        print(result.grounding)  # {"1": "increased by 45%", ...}
         ```
     """
     agent = create_rlm_agent(model=model, sub_model=sub_model, grounded=grounded, **agent_kwargs)
@@ -262,8 +262,8 @@ def run_rlm_analysis_sync(
             query="What was the revenue change?",
             grounded=True,
         )
-        print(result.info)  # "Revenue grew [FRAG_1]..."
-        print(result.grounding)  # {"FRAG_1": "increased by 45%", ...}
+        print(result.info)  # "Revenue grew [1]..."
+        print(result.grounding)  # {"1": "increased by 45%", ...}
         ```
     """
     agent = create_rlm_agent(model=model, sub_model=sub_model, grounded=grounded, **agent_kwargs)

@@ -194,11 +194,11 @@ result = await run_rlm_analysis(
 
 # Response contains citation markers
 print(result.info)
-# "Revenue increased [FRAG_1] primarily due to [FRAG_2]"
+# "Revenue increased [1] primarily due to [2]"
 
 # Grounding maps markers to exact quotes from the source
 print(result.grounding)
-# {"FRAG_1": "by 45% year-over-year", "FRAG_2": "expansion into Asian markets"}
+# {"1": "by 45% year-over-year", "2": "expansion into Asian markets"}
 ```
 
 ---
@@ -243,8 +243,8 @@ answer = run_rlm_analysis_sync(context, query, model="openai:gpt-5")
 
 # With grounding (returns GroundedResponse)
 result = await run_rlm_analysis(context, query, grounded=True)
-print(result.info)       # Text with [FRAG_N] markers
-print(result.grounding)  # {"FRAG_1": "exact quote", ...}
+print(result.info)       # Text with [N] markers
+print(result.grounding)  # {"1": "exact quote", ...}
 ```
 
 ### `RLMDependencies`
